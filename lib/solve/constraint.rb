@@ -180,6 +180,38 @@ module Solve
       type
     end
 
+    # Determines if the given version constraint will cause a dependency conflict with the
+    # instantiated constraint.
+    #
+    # @param [#to_s] target_constraint
+    #   a version constraint to check against
+    #
+    # @return [Boolean]
+    #   true if conflicting and false if not
+    def conflicts?(target_constraint)
+      target_constraint = Constraint.new(target_constraint.to_s)
+
+      if operator_type == :equal
+        if target_constraint.operator_type != :equal
+          return true
+        end
+
+        return version != target_constraint.version
+      end
+
+      if (operator_type == :greater_than || operator_type == :greater_than_equal) &&
+        (target_constraint.operator_type == :greater_than || target_constraint.operator_type == :greater_than_equal)
+
+        return target_constraint.version >= version ? false : true
+      end
+
+      if (operator_type == :less_than || operator_type == :greater_than_equal) &&
+        (target_constraint.operator_type == :greater_than || target_constraint.operator_type == :greater_than_equal)
+
+        return target_constraint.version >= version ? false : true
+      end
+    end
+
     # Returns true or false if the given version would be satisfied by
     # the version constraint.
     #

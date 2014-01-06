@@ -263,6 +263,69 @@ describe Solve::Constraint do
     end
   end
 
+  describe "#conflicts?", focus: true do
+    let(:constraint_one) { "= 1.0.0" }
+    let(:constraint_two) { "= 1.0.0" }
+
+    subject { Solve::Constraint.new(constraint_one).conflicts?(described_class.new(constraint_two)) }
+
+    context "given two constraints with equality operators (=)" do
+      context "when they have a matching version" do
+        let(:constraint_one) { "= 1.0.0" }
+        let(:constraint_two) { "= 1.0.0" }
+
+        it "does not conflict" do
+          expect(subject).to be_false
+        end
+      end
+
+      context "when they do not have a matching version" do
+        let(:constraint_one) { "= 1.0.0" }
+        let(:constraint_two) { "= 1.1.0" }
+
+        it "conflicts" do
+          expect(subject).to be_true
+        end
+      end
+    end
+
+    context "given a subject with an equality operator (=) and a target with anything else" do
+      let(:constraint_one) { "= 1.0.0" }
+      let(:constraint_two) { "~> 1.0" }
+
+      it "does not conflict" do
+        expect(subject).to be_true
+      end
+    end
+
+    context "given two constraints with greater than equal operators (>=)" do
+      context "when the target version is greater than the subject" do
+        let(:constraint_one) { ">= 1.0.0" }
+        let(:constraint_two) { ">= 2.0.0" }
+
+        it "does not conflict" do
+          expect(subject).to be_false
+        end
+      end
+
+      context "when the target version is less than the subject" do
+        let(:constraint_one) { ">= 1.0.0" }
+        let(:constraint_two) { ">= 0.1.0" }
+
+        it "conflicts" do
+          expect(subject).to be_true
+        end
+      end
+    end
+
+    context "given two constraints with less than operators equal operators (<=)" do
+      let(:constraint_one) { "<= 1.0.0" }
+      let(:constraint_two) { "<= 1.1.0" }
+
+      context "when the target version is greater than the subject"
+    end
+  end
+
   describe "#satisfies?" do
     subject { Solve::Constraint.new("= 1.0.0") }
 
