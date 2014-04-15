@@ -83,5 +83,42 @@ module Solve
       self_dependencies.all? { |dependency| other_dependencies.include?(dependency) }
     end
     alias_method :eql?, :==
+
+    def prune(demands)
+      require 'set'
+      require 'pp'
+      pruned_artifacts = Set.new
+
+      demands.each do |name, constraint|
+        collect_with_deps(name, constraint, pruned_artifacts)
+      end
+
+      pruned_graph = self.class.new
+      pruned_artifacts.each do |a|
+        copy_artifact = pruned_graph.artifact(a.name, a.version)
+        a.dependencies.each do |dep|
+          copy_artifact.depends(dep.name, dep.constraint)
+        end
+      end
+
+      pruned_graph
+
+    end
+
+    def collect_with_deps(name, constraint, artifact_set)
+      matching_artifacts = versions(name, constraint)
+      if matching_artifacts.empty?
+        puts "suspicious dependency constraint: #{name} #{constraint}"
+      end
+      matching_artifacts.each do |artifact|
+        next if artifact_set.include?(artifact)
+        artifact_set << artifact
+        artifact.dependencies.each do |dependency|
+          collect_with_deps(dependency.name, dependency.constraint, artifact_set)
+        end
+      end
+    end
+
   end
+
 end

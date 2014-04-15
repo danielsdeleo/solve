@@ -25,7 +25,9 @@ module Solve
     # @param [#say] ui
     def initialize(graph, demands, ui = nil)
       @ds_graph = DepSelector::DependencyGraph.new
-      @graph = graph
+      puts "graph size: #{graph.artifacts.size}"
+      @graph = graph.prune(demands)
+      puts "graph size: #{@graph.artifacts.size}"
       @demands_array = demands
       @timeout_ms = 1_000
     end
@@ -61,6 +63,32 @@ module Solve
       else
         unsorted_solution
       end
+    end
+
+    def find_unsatisfiable_demands
+      puts "debugging invalid solution, hang on..."
+
+      bad_demands_indices = []
+      viable_demands = []
+
+      1.upto(demands.size) do |i|
+        trial_demands = demands_as_constraints[0,i]
+        bad_demands_indices.each {|bad_index| trial_demands.delete_at(bad_index) }
+
+        begin
+
+          solve_demands(trial_demands)
+          viable_demands = trial_demands
+        rescue Solve::Errors::NoSolutionError => e
+          puts "Demand conflicts: #{trial_demands.last} (#{e})"
+          # this has to be reverse sorted or else we'll delete the wrong
+          # demands when interating
+          bad_demands_indices.unshift(i - 1)
+        end
+      end
+      viable_demands_to_report = viable_demands.map {|d| d.to_s }
+      puts "These cookbooks are ok:"
+      viable_demands_to_report.each {|d| puts "  " + d }
     end
 
     private

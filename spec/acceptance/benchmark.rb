@@ -3,7 +3,7 @@ require 'solve'
 require File.expand_path("../large_graph_no_solution", __FILE__)
 require File.expand_path("../opscode_ci_graph", __FILE__)
 
-PROBLEM = OpscodeCiGraph
+PROBLEM = LargeGraphNoSolution
 N = 1
 
 def demands
@@ -36,7 +36,7 @@ STATIC_GRAPH = create_graph
 
 def solve_gecode
   Solve::Solver.new(STATIC_GRAPH, demands, {}).resolve({})
-rescue Solve::Errors::NoSolutionError
+#rescue Solve::Errors::NoSolutionError
 end
 
 Benchmark.bm(12) do |x|

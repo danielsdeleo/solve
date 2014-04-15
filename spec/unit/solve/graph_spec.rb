@@ -127,4 +127,26 @@ describe Solve::Graph do
       expect(subject).to_not eq(other)
     end
   end
+
+  describe "prune" do
+
+    subject(:graph) do
+      g = Solve::Graph.new
+      g.artifact("A", "1.0.0").depends("B1", "1.0.0")
+      g.artifact("B1", "1.0.0").depends("C1", "1.0.0")
+      g.artifact("C1", "1.0.0").depends("D1", "1.0.0")
+
+      g.artifact("A", "2.0.0").depends("B2", "1.0.0")
+      g.artifact("B2", "1.0.0").depends("B2", "1.0.0")
+
+      g.artifact("X", "1.0.0").depends("Y", "1.0.0")
+      g
+    end
+
+    it "prunes it" do
+      puts graph.prune([ ["A", ">= 0.0.0"] ]).inspect
+    end
+
+  end
+
 end
